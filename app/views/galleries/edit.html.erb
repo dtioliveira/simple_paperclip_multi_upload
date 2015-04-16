@@ -16,21 +16,19 @@
     <% @gallery.pictures.each do |picture| %>
       <%= image_tag picture.image.url(:thumb) %>
       <%= check_box_tag "deleted_images[]", picture.id %>
+      <%= radio_button_tag :main_pic, "main_picture" %>
     <% end %>
   </div>
 
   <div class="control-group">
     <%= f.label :pictures, :class => 'control-label' %>
     <div class="controls">
-      <!-- The magic is coming ...look at my eyes....shazammmm -->
-      <!-- Use HTML5 multiple attribute to enable multiple selection
-           and pass back to controller all files as an array, ready 
-           for paperclip!!
-           file_field_tag, since images is not a gallery attribute
-       -->
-      <%= file_field_tag "images[]", type: :file, multiple: true %>
+      <%= file_field_tag "images[]", type: :file, multiple: true, maxlength: 3, id: 'uploadImage' %>
+
     </div>
   </div>
+
+  <output id="result" />
 
   <div class="form-actions">
     <%= f.submit nil, :class => 'btn btn-primary' %>
@@ -38,3 +36,52 @@
                 galleries_path, :class => 'btn btn-mini' %>
   </div>
 <% end %>
+
+<script type="text/javascript">
+  window.onload = function(){
+        
+    //Check File API support
+    if(window.File && window.FileList && window.FileReader)
+    {
+        var filesInput = document.getElementById("uploadImage");
+        
+        filesInput.addEventListener("change", function(event){
+            
+            var files = event.target.files; //FileList object
+            var output = document.getElementById("result");
+            
+            for(var i = 0; i< files.length; i++)
+            {
+                var file = files[i];
+                
+                //Only pics
+                if(!file.type.match('image'))
+                  continue;
+                
+                var picReader = new FileReader();
+                
+                picReader.addEventListener("load",function(event){
+                    
+                    var picFile = event.target;
+                    
+                    var div = document.createElement("div");
+                    
+                    div.innerHTML = "<img style='width: 100px; float: left;' class='thumbnail' src='" + picFile.result + "'" +
+                            "title='" + picFile.name + "'/>";
+                    
+                    output.insertBefore(div,null);            
+                
+                });
+                
+                 //Read the image
+                picReader.readAsDataURL(file);
+            }                               
+           
+        });
+    }
+    else
+    {
+        console.log("Seu navegador nao suporta a API de imagens.");
+    }
+}
+</script>
